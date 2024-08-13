@@ -30,7 +30,6 @@ public class Foo {
 
     [Range(0, 1)]
     public float floatValue3 = 0.345f;
-
 }
 
 public partial class Helpers {
@@ -62,13 +61,15 @@ public partial class Helpers {
                     f.SetValue(dataClass, (int)v);
                     input.text = v.ToString();
                 });
-            } else {
+            }
+            else {
                 slider.value = (float)ov;
                 slider.onValueChanged.AddListener(v => {
                     f.SetValue(dataClass, v);
                     input.text = v.ToString();
                 });
             }
+
             input.onValueChanged.AddListener(v => {
                 if (string.IsNullOrEmpty(v)) return;
                 if (isInt) {
@@ -77,7 +78,8 @@ public partial class Helpers {
                     else if (d > r.max) d = (int)r.max;
                     slider.value = d;
                     f.SetValue(dataClass, d);
-                } else {
+                }
+                else {
                     var d = float.Parse(v);
                     if (d < r.min) d = r.min;
                     else if (d > r.max) d = r.max;
@@ -86,24 +88,35 @@ public partial class Helpers {
                 }
             });
         }
+
         var ct = ((RectTransform)container.transform);
         ct.sizeDelta = new Vector2(ct.sizeDelta.x, -y);
     }
 }
 
 public class MainScene : MonoBehaviour {
-
     public GameObject prefab_property;
 
     public Foo foo = new();
 
+    private TextMeshProUGUI fpsText; // = t
+
+    private float lastSecs, drawCounter;
+
     void Start() {
         Helpers.GenUI_PropsTo("Content", prefab_property, foo);
+        fpsText = GameObject.Find("FPS").GetComponent<TextMeshProUGUI>();
     }
 
-
     void Update() {
-
+        ++drawCounter;
+        var nowSecs = Time.time;
+        var elapsedSecs = nowSecs - lastSecs;
+        if (elapsedSecs >= 1) {
+            lastSecs = nowSecs;
+            fpsText.text = (drawCounter / elapsedSecs).ToString();
+            drawCounter = 0;
+        }
     }
 }
 
