@@ -2,6 +2,7 @@
 using TMPro;
 using System.Reflection;
 using UnityEngine.UI;
+using UnityEngine.EventSystems;
 
 /// <summary>
 /// 这个类的成员当前只支持 2 种数据类型：int, float，且需要用 Range 标注范围
@@ -94,18 +95,37 @@ public partial class Helpers {
     }
 }
 
-public class MainScene : MonoBehaviour {
+public class MainScene : MonoBehaviour, IPointerClickHandler/*, IPointerEnterHandler, IPointerExitHandler*/ {
     public GameObject prefab_property;
 
     public Foo foo = new();
 
-    private TextMeshProUGUI fpsText; // = t
+    private TextMeshProUGUI fpsText;    // FpsText
+    private TextMeshProUGUI richText;    // RichText
 
     private float lastSecs, drawCounter;
 
+    public void OnPointerClick(PointerEventData eventData) {
+        //Debug.Log(eventData.position);
+        var idx = TMP_TextUtilities.FindIntersectingLink(richText, eventData.position, null);
+        if (idx != -1) {
+            var info = richText.textInfo.linkInfo[idx];
+            Debug.Log(info.GetLinkID());
+        }
+    }
+
+    //public void OnPointerEnter(PointerEventData eventData) {
+    //    //Debug.Log(eventData);
+    //}
+
+    //public void OnPointerExit(PointerEventData eventData) {
+    //    //Debug.Log(eventData);
+    //}
+
     void Start() {
         Helpers.GenUI_PropsTo("Content", prefab_property, foo);
-        fpsText = GameObject.Find("FPS").GetComponent<TextMeshProUGUI>();
+        fpsText = GameObject.Find("FpsText").GetComponent<TextMeshProUGUI>();
+        richText = GameObject.Find("RichText").GetComponent<TextMeshProUGUI>();
     }
 
     void Update() {

@@ -6,7 +6,7 @@ using UnityEngine.EventSystems;
 public class WindowPanel : MonoBehaviour, IDragHandler, IPointerDownHandler {
     public PointerEventData.InputButton mouseDragButton;
     public int borderSnapSize = 10;
-    private Vector3 mouseDragOffset;
+    private Vector2 mouseDragOffset;
     private RectTransform trans;
     private Camera cam;
     private static HashSet<WindowPanel> allWindows = new();
@@ -19,14 +19,15 @@ public class WindowPanel : MonoBehaviour, IDragHandler, IPointerDownHandler {
 
     public void OnDrag(PointerEventData eventData) {
         if (eventData.button != mouseDragButton) return;
-        trans.position = Input.mousePosition - mouseDragOffset;
+        
+        trans.position = eventData.position - mouseDragOffset;
         TrapToScreen();
         SnapEachOther();
     }
 
     public void OnPointerDown(PointerEventData eventData) {
         if (eventData.button != mouseDragButton) return;
-        mouseDragOffset = Input.mousePosition - trans.position;
+        mouseDragOffset = eventData.position - (Vector2)trans.position;
         trans.SetAsLastSibling();
     }
 
