@@ -12,25 +12,37 @@ public class Foo {
 
     [Range(0, 1)]
     public float floatValue = 0.345f;
+
+    [Range(0, 100)]
+    public int intValue1 = 12;
+
+    [Range(0, 1)]
+    public float floatValue1 = 0.345f;
+
+    [Range(0, 100)]
+    public int intValue2 = 12;
+
+    [Range(0, 1)]
+    public float floatValue2 = 0.345f;
+
+    [Range(0, 100)]
+    public int intValue3 = 12;
+
+    [Range(0, 1)]
+    public float floatValue3 = 0.345f;
+
 }
 
-public class MainScene : MonoBehaviour {
-
-    public GameObject prefab_property;
-
-    public Foo foo = new();
-
-    void Start() {
-        // todo: 生成到 scroll view? 弄进一个 panel ? 模拟成 window ? 可以 show hide ?
-
-        var canvas = GameObject.Find("Canvas");
-        var fs = foo.GetType().GetFields(BindingFlags.Public | BindingFlags.Instance);
+public partial class Helpers {
+    public static void GenUI_PropsTo(string containerName, GameObject prefabProperty, System.Object dataClass) {
+        var container = GameObject.Find(containerName);
+        var fs = dataClass.GetType().GetFields(BindingFlags.Public | BindingFlags.Instance);
         float y = 0;
         foreach (var f in fs) {
             var r = (RangeAttribute)f.GetCustomAttributes(false)[0];
-            var p = Instantiate(prefab_property);
+            var p = GameObject.Instantiate(prefabProperty);
             var t = (RectTransform)p.transform;
-            t.SetParent(canvas.transform);
+            t.SetParent(container.transform);
             t.anchoredPosition = new Vector2(0, y);
             y -= 30 + 3;
             var label = t.Find("Label").gameObject.GetComponent<TextMeshProUGUI>();
@@ -42,18 +54,18 @@ public class MainScene : MonoBehaviour {
             var isInt = f.FieldType == typeof(int);
             slider.wholeNumbers = isInt;
             input.contentType = isInt ? TMP_InputField.ContentType.IntegerNumber : TMP_InputField.ContentType.DecimalNumber;
-            var ov = f.GetValue(foo);
+            var ov = f.GetValue(dataClass);
             input.text = ov.ToString();
             if (isInt) {
                 slider.value = (int)ov;
                 slider.onValueChanged.AddListener(v => {
-                    f.SetValue(foo, (int)v);
+                    f.SetValue(dataClass, (int)v);
                     input.text = v.ToString();
                 });
             } else {
                 slider.value = (float)ov;
                 slider.onValueChanged.AddListener(v => {
-                    f.SetValue(foo, v);
+                    f.SetValue(dataClass, v);
                     input.text = v.ToString();
                 });
             }
@@ -64,17 +76,29 @@ public class MainScene : MonoBehaviour {
                     if (d < r.min) d = (int)r.min;
                     else if (d > r.max) d = (int)r.max;
                     slider.value = d;
-                    f.SetValue(foo, d);
+                    f.SetValue(dataClass, d);
                 } else {
                     var d = float.Parse(v);
                     if (d < r.min) d = r.min;
                     else if (d > r.max) d = r.max;
                     slider.value = d;
-                    f.SetValue(foo, d);
+                    f.SetValue(dataClass, d);
                 }
             });
         }
+        var ct = ((RectTransform)container.transform);
+        ct.sizeDelta = new Vector2(ct.sizeDelta.x, -y);
+    }
+}
 
+public class MainScene : MonoBehaviour {
+
+    public GameObject prefab_property;
+
+    public Foo foo = new();
+
+    void Start() {
+        Helpers.GenUI_PropsTo("Content", prefab_property, foo);
     }
 
 
