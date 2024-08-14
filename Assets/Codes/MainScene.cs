@@ -3,6 +3,7 @@ using TMPro;
 using System.Reflection;
 using UnityEngine.UI;
 using UnityEngine.EventSystems;
+using System.Collections.Generic;
 
 /// <summary>
 /// 这个类的成员当前只支持 2 种数据类型：int, float，且需要用 Range 标注范围
@@ -95,15 +96,21 @@ public partial class Helpers {
     }
 }
 
-public class MainScene : MonoBehaviour, IPointerClickHandler/*, IPointerEnterHandler, IPointerExitHandler*/ {
+public class MainScene : MonoBehaviour, IPointerClickHandler, IPointerEnterHandler, IPointerExitHandler/*, IDragHandler, IPointerDownHandler*/ {
     public GameObject prefab_property;
 
     public Foo foo = new();
 
     private TextMeshProUGUI fpsText;    // FpsText
     private TextMeshProUGUI richText;    // RichText
+    private Button button; // Button
+    private Image image; // Image
 
     private float lastSecs, drawCounter;
+
+    //public void OnDrag(PointerEventData eventData) {
+    //    Debug.Log("MainScene OnDrag " + eventData.pointerDrag.name);
+    //}
 
     public void OnPointerClick(PointerEventData eventData) {
         //Debug.Log(eventData.position);
@@ -111,21 +118,35 @@ public class MainScene : MonoBehaviour, IPointerClickHandler/*, IPointerEnterHan
         if (idx != -1) {
             var info = richText.textInfo.linkInfo[idx];
             Debug.Log(info.GetLinkID());
+
+            // todo: 点击超链接之后 弹出临时的 info panel 可以多层, 点击 info panel 的关闭或外围来 关闭它  可级联关闭 也就是说 只要没有点中最上层 info panel 就关所有
         }
     }
 
-    //public void OnPointerEnter(PointerEventData eventData) {
-    //    //Debug.Log(eventData);
+    //public void OnPointerDown(PointerEventData eventData) {  
+    //    Debug.Log("MainScene OnPointerDown " + eventData.position);
     //}
 
-    //public void OnPointerExit(PointerEventData eventData) {
-    //    //Debug.Log(eventData);
-    //}
+    public void OnPointerEnter(PointerEventData eventData) {
+        // todo: 鼠标悬停时弹出提示？移走后消失？
+        Debug.Log("enter " + eventData.pointerEnter.name);
+        //if (eventData.pointerEnter == button) {
+        //    Debug.Log("enter btn");
+        //}
+    }
+
+    public void OnPointerExit(PointerEventData eventData) {
+        //if (eventData.pointe)
+        Debug.Log("exit " + eventData.pointerEnter.name);
+    }
 
     void Start() {
         Helpers.GenUI_PropsTo("Content", prefab_property, foo);
         fpsText = GameObject.Find("FpsText").GetComponent<TextMeshProUGUI>();
         richText = GameObject.Find("RichText").GetComponent<TextMeshProUGUI>();
+        button = GameObject.Find("Button").GetComponent<Button>();
+        image = GameObject.Find("Image").GetComponent<Image>();
+        image.AddComponent<Dragger>();
     }
 
     void Update() {
@@ -139,6 +160,78 @@ public class MainScene : MonoBehaviour, IPointerClickHandler/*, IPointerEnterHan
         }
     }
 }
+
+/// <summary>
+/// 用于附加到 gameObject 上提供拖拽功能. 当前只支持 pivot 为 0.5, 0.5( 除非不要 snap )
+/// </summary>
+public class Dragger : MonoBehaviour, IDragHandler, IPointerDownHandler {
+    public const int borderSnapSize = 10;
+    private Vector2 mouseDragOffset;
+    private RectTransform trans;
+    private Camera cam;
+    private static HashSet<Dragger> allWindows = new();
+
+    private void Awake() {
+        cam = Camera.main;
+        trans = (RectTransform)transform;
+        allWindows.Add(this);
+    }
+
+    public void OnDrag(PointerEventData eventData) {
+        if (eventData.button != PointerEventData.InputButton.Left) return;
+
+        trans.position = eventData.position - mouseDragOffset;
+        TrapToScreen();
+        SnapEachOther();
+    }
+
+    public void OnPointerDown(PointerEventData eventData) {
+        if (eventData.button != PointerEventData.InputButton.Left) return;
+        mouseDragOffset = eventData.position - (Vector2)trans.position;
+        trans.SetAsLastSibling();
+    }
+
+    void TrapToScreen() {
+        var rp = (Vector3)trans.rect.position;
+        var diffMin = trans.position + rp;
+        var diffMax = (Vector3)cam.pixelRect.size - trans.position + rp;
+        if (diffMin.x < borderSnapSize) {
+            trans.position -= new Vector3(diffMin.x, 0);
+        }
+        if (diffMin.y < borderSnapSize) {
+            trans.position -= new Vector3(0, diffMin.y);
+        }
+        if (diffMax.x < borderSnapSize) {
+            trans.position += new Vector3(diffMax.x, 0);
+        }
+        if (diffMax.y < borderSnapSize) {
+            trans.position += new Vector3(0, diffMax.y);
+        }
+    }
+
+    void SnapEachOther() {
+        foreach (var w in allWindows) {
+            if (w == this) continue;
+            if (w.gameObject.activeInHierarchy) {
+                var diffMin = w.trans.position - (Vector3)(w.trans.rect.position + trans.rect.position) - trans.position;
+                var diffMax = w.trans.position + (Vector3)(w.trans.rect.position + trans.rect.position) - trans.position;
+                if (Mathf.Abs(diffMin.x) < borderSnapSize) {
+                    trans.position += new Vector3(diffMin.x, 0, 0);
+                }
+                if (Mathf.Abs(diffMin.y) < borderSnapSize) {
+                    trans.position += new Vector3(0, diffMin.y, 0);
+                }
+                if (Mathf.Abs(diffMax.x) < borderSnapSize) {
+                    trans.position += new Vector3(diffMax.x, 0, 0);
+                }
+                if (Mathf.Abs(diffMax.y) < borderSnapSize) {
+                    trans.position += new Vector3(0, diffMax.y, 0);
+                }
+            }
+        }
+    }
+}
+
 
 //var gs = gameObject.scene.GetRootGameObjects();
 //foreach (var g in gs) {
