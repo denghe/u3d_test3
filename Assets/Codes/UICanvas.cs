@@ -8,14 +8,11 @@ using Unity.VisualScripting;
 /// 附加到场景的 Canvas UI上
 /// </summary>
 public class UICanvas : MonoBehaviour, IPointerClickHandler, IPointerEnterHandler, IPointerExitHandler/*, IDragHandler, IPointerDownHandler*/ {
-    private TextMeshProUGUI fpsText;    // FpsText
     private TextMeshProUGUI richText;    // RichText
     private Button button; // Button
-    private float lastSecs, drawCounter;
 
     public void Init(GameObject prefab, System.Object data) {
         Helpers.GenUI_PropsTo("Content", prefab, data);
-        fpsText = GameObject.Find("FpsText").GetComponent<TextMeshProUGUI>();
         richText = GameObject.Find("RichText").GetComponent<TextMeshProUGUI>();
         button = GameObject.Find("Button").GetComponent<Button>();
 
@@ -30,17 +27,6 @@ public class UICanvas : MonoBehaviour, IPointerClickHandler, IPointerEnterHandle
         button.onClick.AddListener(() => {
             gameObject.SetActive(false);
         });
-    }
-
-    void Update() {
-        ++drawCounter;
-        var nowSecs = Time.time;
-        var elapsedSecs = nowSecs - lastSecs;
-        if (elapsedSecs >= 1) {
-            lastSecs = nowSecs;
-            fpsText.text = (drawCounter / elapsedSecs).ToString();
-            drawCounter = 0;
-        }
     }
 
     // todo: 鼠标悬停时弹出提示？移走后消失？

@@ -1,9 +1,9 @@
 ﻿using UnityEngine;
 
 /// <summary>
-/// 附加到场景首个空节点上
+/// 启动器. 附加到场景首个空节点上
 /// </summary>
-public class MainScene : MonoBehaviour {
+public class Boot : MonoBehaviour {
     public GameObject prefab_property;
 
     void Start() {
