@@ -56,10 +56,15 @@ Material:
     - _AlphaCutoff: 0.5
     - _EnableExternalAlpha: 0
     - _MutVal: -12
+    - _Tickness: -12
+    - _TimeScale: -5
     m_Colors:
     - _Color: {r: 8, g: 2.6387432, b: 9.172773, a: 1}
     - _Color0: {r: 4, g: 0, b: 2.152266, a: 0}
     - _EmissionColor: {r: 1, g: 1, b: 1, a: 1}
     - _Flip: {r: 1, g: 1, b: 1, a: 1}
+    - _NoiseTiling: {r: 1, g: 1, b: 0, a: 0}
     - _RendererColor: {r: 1, g: 1, b: 1, a: 1}
+    - _UVTiling_Tickness_Speed: {r: 1, g: 1, b: -12, a: -5}
+    - _Vector0: {r: 1, g: 1, b: 0, a: 0}
   m_BuildTextureStacks: []
