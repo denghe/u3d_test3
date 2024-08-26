@@ -3,7 +3,7 @@
 /// <summary>
 /// 启动器. 附加到场景首个空节点上
 /// </summary>
-public class Boot : MonoBehaviour {
+public class Scene1 : MonoBehaviour {
     public GameObject prefab_property;
 
     void Start() {
