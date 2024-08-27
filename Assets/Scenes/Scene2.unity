@@ -1955,6 +1955,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 25d5a08b5f583fb40946941af6ec1562, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  material: {fileID: 2100000, guid: 3aaee723c9cb9da44ac1c56a3ef9366a, type: 2}
   sprites_bg:
   - {fileID: 21300000, guid: 709ad3334aa5d4c4aad3d31b884cfa6c, type: 3}
   - {fileID: 21300000, guid: 4a3b737bc98517d4b8143cf140f7a3e4, type: 3}

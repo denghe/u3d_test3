@@ -51,6 +51,11 @@ public static class Inputs {
     public static Vector2 mousePosition, mousePositionWithoutUI;
 
     /// <summary>
+    /// 当前鼠标的 camera 坐标
+    /// </summary>
+    public static Vector2 mousePositionInCamera, mousePositionWithoutUIInCamera;
+
+    /// <summary>
     /// 当前鼠标按键状态 -- left button
     /// </summary>
     public static bool mouseButtonLeftDown;
@@ -141,8 +146,10 @@ public static class Inputs {
         // mouse
         ia.Player.MPoint.performed += o => {
             mousePosition = o.ReadValue<Vector2>();
+            mousePositionInCamera = Camera.main.ScreenToWorldPoint(mousePosition);
             if (!mouseCoveredUI) {
                 mousePositionWithoutUI = mousePosition;
+                mousePositionWithoutUIInCamera = mousePositionInCamera;
             }
         };
 

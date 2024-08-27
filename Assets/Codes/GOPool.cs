@@ -33,7 +33,7 @@ public struct GO {
     /// <summary>
     /// 从对象池拿 GO 并返回. 没有就新建
     /// </summary>
-    public static void Pop(ref GO o, int layer = 0, string sortingLayerName = "Default") {
+    public static void Pop(ref GO o, int sortingOrder = 0, int layer = 0, string sortingLayerName = "Default") {
 #if UNITY_EDITOR
         Debug.Assert(o.g == null);
 #endif
@@ -43,6 +43,7 @@ public struct GO {
             o.r.color = new Color(1f, 1f, 1f, 1f);
         }
         o.g.layer = layer;
+        o.r.sortingOrder = sortingOrder;
         o.r.sortingLayerName = sortingLayerName;
         o.g.SetActive(true);
     }
@@ -56,8 +57,10 @@ public struct GO {
 #endif
         o.r.material = material;
         o.r.sprite = null;
-        o.g.transform.SetPositionAndRotation(Vector3.zero, Quaternion.identity);
-        o.g.transform.localScale = Vector3.one;
+        var t = o.g.transform;
+        t.parent = null;
+        t.SetPositionAndRotation(Vector3.zero, Quaternion.identity);
+        t.localScale = Vector3.one;
         o.g.SetActive(false);
         pool.Push(o);
         o.g = null;
@@ -77,12 +80,14 @@ public struct GO {
     }
 
     /// <summary>
-    /// 预填充
+    /// 预填充( 可多次调用但参数不能变，方便任意 scene 来初始化 )
     /// </summary>
     public static void Init(Material material, int count) {
-#if UNITY_EDITOR
-        Debug.Assert(GO.material == null);
-#endif
+        if (GO.material != null) {
+            Debug.Assert(GO.material == material);
+            Debug.Assert(GO.pool != null);
+            return;
+        }
         GO.material = material;
         GO.pool = new(count);
         for (int i = 0; i < count; i++) {

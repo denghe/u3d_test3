@@ -1,65 +1,133 @@
-﻿using System.Collections.Generic;
-using UnityEngine;
-using UnityEngine.Assertions;
+﻿using UnityEngine;
+using static UnityEditor.Progress;
 
+// 固定大小的包
 public class Bag {
 
-    public const int numRows = 7;                           // 行数
-    public const int numCols = 10;                          // 列数
-    public const int numMaxItems = numRows * numCols;       // 最大数量
-    public const float cellSize = 132;                      // 正方形格子边长( 和显示背景尺寸同步 )
-    public const float cellSize_2 = cellSize / 2;
-    public const float gridWidth = cellSize * numCols;
-    public const float gridWidth_2 = gridWidth / 2;
-    public const float gridHeight = cellSize * numRows;
-    public const float gridHeight_2 = gridHeight / 2;
-
-    public GameObject go;                                   // 指向背包显示区域背景 go
+    // init 时填充
+    public int numRows;                                     // 行数
+    public int numCols;                                     // 列数
+    public int numMaxItems;                                 // 最大数量
+    public float cellSize;                                  // 正方形格子边长( 和显示背景尺寸同步 )
+    public float cellSize_2;
+    public float gridWidth;                                 // 整个表格的宽度
+    public float gridWidth_2;
+    public float gridHeight;                                // 整个表格的高度
+    public float gridHeight_2;
+    public BagItem[] items;
     public float posX, posY;                                // 存储显示区域左上角坐标( 世界坐标 )
 
-    public BagItem[] items;
-    public BagItem draggingItem;                            // 鼠标正在拖拽的 item ( 为空就是没有拖拽 )
+    // mouse down & drag 时填充
+    public BagItem selectedItem;                            // mouse down 时对应的格子里面的 item
+    public bool dragging;                                   // 是否正在拖拽
     public float draggingX, draggingY;                      // 鼠标拖拽时该 item 的 tarX, Y
     public bool lastMBLeftDown;                             // 上次的鼠标左键按下状态
+    public float lastMouseX, lastMouseY;                    // 鼠标拖拽时 mouse 的 X, Y
+    public float lastMBLeftDownTime;                        // 上次的鼠标左键按下状态变化的时间点( 秒 )
+    public int lastItemIndex;                               // 上次的鼠标左键按下时所在格子下标
 
-    public Bag() {
+    public void Init(int numRows_, int numCols_, float cellSize_, float goX, float goY) {
+        Debug.Assert(items == null);
+        numRows = numRows_;
+        numCols = numCols_;
+        numMaxItems = numRows * numCols_;
+        cellSize = cellSize_;
+        cellSize_2 = cellSize / 2;
+        gridWidth = cellSize * numCols;
+        gridWidth_2 = gridWidth / 2;
+        gridHeight = cellSize * numRows;
+        gridHeight_2 = gridHeight / 2;
         items = new BagItem[numMaxItems];
 
-        // 先随便生成一些 item for test
-        for (int rowIndex = 0; rowIndex < 10; rowIndex++) {
-            for (int colIndex = 0; colIndex < 10; colIndex++) {
-                if (Random.value > 0.5f) {
-                    new BagItem(this, rowIndex, colIndex);
-                }
-            }
-        }
-    }
-
-    public void Show(GameObject goBag_) {
-        Debug.Assert(go == null);
-        go = goBag_;
-        posX = go.transform.position.x;
-        posY = go.transform.position.y + gridHeight;
-        for (int i = 0, e = items.Length; i < e; i++) {
-            items[i]?.Show();
-        }
-    }
-
-    public void Hide() {
-        Debug.Assert(go != null);
-        go = null;
-        for (int i = 0, e = items.Length; i < e; i++) {
-            items[i]?.Hide();
-        }
+        posX = goX - gridWidth_2;
+        posY = goY + gridHeight_2;
+        Debug.Log(posX + " " + posY);
     }
 
     public void Update() {
-        // todo: 响应 mouse 行为. 判断是在 bag 区域内 button left down
-        // 进而计算 选中了哪一个 item, 填充 draggingXXXXXXXX ( bag 屏幕坐标 - mouse 屏幕坐标? )
+        // 拿到鼠标位于 camera 的坐标
+        var mp = Inputs.mousePositionInCamera;
+        // 鼠标按钮处于压下状态
+        if (Inputs.mouseButtonLeftDown) {
+            // 和上次记录的鼠标状态有差异. 是否产生 mouse down 事件呢? 先判断有没有点到东西
+            if (!lastMBLeftDown) {
+                // 计算鼠标在表格中的逻辑坐标
+                var x = mp.x - posX;
+                var y = posY - mp.y;        // y 坐标是上大下小
+                // 范围合法性判断( 范围外则认为不该产生 mouse down 事件 )
+                if (x >= 0 && y >= 0 && x < gridWidth && y < gridHeight) {
+                    // 将坐标转为 行列号，数组下标
+                    var colIndex = (int)x / (int)cellSize;
+                    var rowIndex = (int)y / (int)cellSize;
+                    var itemIndex = colIndex + rowIndex * numCols;
+                    // 如果对应的格子不空，则 mouse down 事件成立, 记录上下文
+                    var item = items[itemIndex];
+                    if (item != null) {
+                        selectedItem = item;
+                        lastMBLeftDown = true;
+                        lastMouseX = mp.x;
+                        lastMouseY = mp.y;
+                        lastMBLeftDownTime = Env.time;
+                        lastItemIndex = itemIndex;
+                    }
+                }
+            }
+            // 无差异. 是否产生 mouse drag 事件呢? 先判断 mouse down 事件是否成立，且鼠标坐标是否变化
+            else if (selectedItem != null) {
+                // 虽然坐标没变，但如果 mouse down 的时间超过 0.2 秒? 还是认为想拖拽
+                if (mp.x != lastMouseX || mp.y != lastMouseY || Env.time - lastMBLeftDownTime > 0.2) {
+                    // todo: 拖拽范围判断
+                    dragging = true;
+                    draggingX = mp.x;
+                    draggingY = mp.y;
+                }
+            }
+        } else {
+            // 如果正在拖拽，那就要判断目标格子是原先的格子还是 新的格子，新格子是空的就移动，有东西就交换
+            if (dragging) {
+                // 计算鼠标在表格中的逻辑坐标
+                var x = mp.x - posX;
+                var y = posY - mp.y;        // y 坐标是上大下小
+                // 范围合法性判断( 范围外则认为取消拖拽 )
+                if (x >= 0 && y >= 0 && x < gridWidth && y < gridHeight) {
+                    // 将坐标转为 行列号，数组下标
+                    var colIndex = (int)x / (int)cellSize;
+                    var rowIndex = (int)y / (int)cellSize;
+                    var itemIndex = colIndex + rowIndex * numCols;
+                    var item = items[itemIndex];
+
+                    // 不空, 且不是自身: 交换逻辑
+                    if (item != null) {
+                        if (item != selectedItem) {
+                            item.SetTarXY(lastItemIndex);
+                            selectedItem.SetTarXY(itemIndex);
+                            items[itemIndex] = selectedItem;
+                            items[lastItemIndex] = item;
+                        }
+                        // 空：挪
+                    } else {
+                        selectedItem.SetTarXY(itemIndex);
+                        items[itemIndex] = selectedItem;
+                        items[lastItemIndex] = null;
+                    }
+                }
+            }
+
+            // clean up
+            selectedItem = null;
+            lastMBLeftDown = false;
+            dragging = false;
+        }
+
+        if (selectedItem == null) {
+            // todo: 如果没有 mouse down 此时应该根据鼠标指到的 item, 显示个 pop up info panel
+
+        }
+
 
         for (int i = 0, e = items.Length; i < e; i++) {
             var item = items[i];
-            if (item.Update()) {
+            if (item != null && item.Update()) {
                 item.Destroy();
                 items[i] = null;
             }
@@ -67,10 +135,30 @@ public class Bag {
     }
 
     public void Draw() {
-        Debug.Assert(go != null);
         for (int i = 0, e = items.Length; i < e; i++) {
             items[i]?.Draw();
         }
     }
 
+    public void Destroy() {
+        for (int i = 0, e = items.Length; i < e; i++) {
+            if (items[i] != null) {
+                items[i].Destroy();
+                items[i] = null;
+            }
+        }
+        items = null;
+    }
+
+    public void Show() {
+        for (int i = 0, e = items.Length; i < e; i++) {
+            items[i]?.Show();
+        }
+    }
+
+    public void Hide() {
+        for (int i = 0, e = items.Length; i < e; i++) {
+            items[i]?.Hide();
+        }
+    }
 }

@@ -1,4 +1,5 @@
 ﻿using UnityEngine;
+using UnityEngine.UI;
 
 /// <summary>
 /// 对象品质，对应 bg 下标
@@ -9,40 +10,61 @@ public enum BagItemQuality {
 
 public class BagItem {
     public Bag bag;
-    public GameObject go;                       // 显示对象
-    public float x, y;                          // 当前坐标
-    public float tarX, tarY;                    // 要移动到的目标坐标
-    public const float tarSpeed = 10;            // 移动速度( 每帧像素距离 )
+    public GO goBG, goItem, goShadow;           // 显示对象
+    public float x, y;                          // 当前坐标( world )
+    public float tarX, tarY;                    // 要移动到的目标坐标( world )
+    public const float tarSpeed = 35;           // 移动速度( 每帧像素距离 )
 
     BagItemQuality quality;                     // 物品品质
     int id;                                     // 物品 id
-    int quantity;                               // 数量
+    double quantity;                            // 数量( todo: 显示为文字? )
     // ...
 
-    public BagItem(Bag bag_, int id_, int quality_, int rowIndex = -1, int colIndex = -1) {
+    public BagItem(Bag bag_, int id_, BagItemQuality quality_, double quantity_ = 1, int rowIndex = -1, int colIndex = -1) {
         Debug.Assert(rowIndex != -1 && colIndex != -1
             || rowIndex == -1 && colIndex == -1);
 
         bag = bag_;
-        var idx = rowIndex * Bag.numCols + colIndex;
+        var idx = rowIndex * bag.numCols + colIndex;
         Debug.Assert(bag.items[idx] == null);
 
         bag.items[idx] = this;
 
         id = id_;
-        quantity = quality_;
+        quality = quality_;
+        quantity = quantity_;
 
-        tarX = x = colIndex * Bag.cellSize + Bag.cellSize_2;
-        tarY = y = rowIndex * Bag.cellSize + Bag.cellSize_2;
+        SetTarXY(rowIndex, colIndex);
+        x = bag.posX + bag.cellSize_2;
+        y = bag.posY - bag.cellSize_2;
 
-        InitGameObject();
+        GO.Pop(ref goBG);
+        GO.Pop(ref goItem);
+        GO.Pop(ref goShadow);
+        goBG.r.sprite = Res.sprites_bg[(int)quality];
+        goItem.r.sprite = Res.sprites_item[id];
+        goShadow.r.sprite = Res.sprites_item[id];
+        goShadow.r.color = new Color(0, 0, 0, 127);
+        goShadow.g.transform.position = new Vector3(6, -5);
+        goItem.g.transform.parent = goBG.g.transform;
+        goShadow.g.transform.parent = goBG.g.transform;
+    }
+
+    public void SetTarXY(int rowIndex, int colIndex) {
+        tarX = bag.posX + colIndex * bag.cellSize + bag.cellSize_2;
+        tarY = bag.posY - rowIndex * bag.cellSize - bag.cellSize_2;
+    }
+    public void SetTarXY(int itemIndex) {
+        var rowIndex = itemIndex / bag.numCols;
+        var colIndex = itemIndex - rowIndex * bag.numCols;
+        SetTarXY(rowIndex, colIndex);
     }
 
     public bool Update() {
 
         // 计算目标坐标
         float tx, ty;
-        if (bag.draggingItem == this) {
+        if (bag.dragging && bag.selectedItem == this) {
             tx = bag.draggingX;
             ty = bag.draggingY;
         } else {
@@ -72,27 +94,33 @@ public class BagItem {
     }
 
     public void Draw() {
-        go.transform.position = new Vector3(x, y);
-    }
-
-    public void InitGameObject() {
-        go = new GameObject();
-        // todo: add bg sprite
-        // todo: add item sprite
-    }
-
-    public void Show() {
-        go.transform.parent = bag.go.transform;
-        go.SetActive(true);
-    }
-
-    public void Hide() {
-        go.transform.parent = null;
-        go.SetActive(false);
+        goBG.g.transform.position = new Vector3(x, y);
+        if (bag.dragging && bag.selectedItem == this) {
+            if (goBG.r.sortingOrder != 4) {
+                goBG.r.sortingOrder = 4;
+                goItem.r.sortingOrder = 6;
+                goShadow.r.sortingOrder = 5;
+            }
+        } else {
+            if (goBG.r.sortingOrder != 1) {
+                goBG.r.sortingOrder = 1;
+                goItem.r.sortingOrder = 3;
+                goShadow.r.sortingOrder = 2;
+            }
+        }
     }
 
     public void Destroy() {
-        GameObject.Destroy(go);
+        GO.Push(ref goShadow);
+        GO.Push(ref goItem);
+        GO.Push(ref goBG);
     }
 
+    public void Show() {
+        goBG.g.SetActive(true);
+    }
+
+    public void Hide() {
+        goBG.g.SetActive(false);
+    }
 }
