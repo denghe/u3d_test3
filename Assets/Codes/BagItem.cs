@@ -1,5 +1,4 @@
 ﻿using UnityEngine;
-using UnityEngine.UI;
 
 /// <summary>
 /// 对象品质，对应 bg 下标
@@ -10,14 +9,14 @@ public enum BagItemQuality {
 
 public class BagItem {
     public Bag bag;
-    public GO goBG, goItem, goShadow;           // 显示对象
-    public float x, y;                          // 当前坐标( world )
-    public float tarX, tarY;                    // 要移动到的目标坐标( world )
-    public const float tarSpeed = 35;           // 移动速度( 每帧像素距离 )
+    public GO goBG, goItem, goShadow;                   // 显示对象
+    public float x, y;                                  // 当前坐标( world )
+    public float tarX, tarY;                            // 要移动到的目标坐标( world )
+    public const float tarSpeed = 80 * 60 / Env.FPS;    // 移动速度( 每帧像素距离 )
 
-    BagItemQuality quality;                     // 物品品质
-    int id;                                     // 物品 id
-    double quantity;                            // 数量( todo: 显示为文字? )
+    public BagItemQuality quality;                      // 物品品质
+    public int id;                                      // 物品 id
+    public double quantity;                             // 数量( todo: 显示为文字? )
     // ...
 
     public BagItem(Bag bag_, int id_, BagItemQuality quality_, double quantity_ = 1, int rowIndex = -1, int colIndex = -1) {

@@ -40,12 +40,12 @@ public struct GO {
         if (!pool.TryPop(out o)) {
             o = New();
         } else {
+            o.g.SetActive(true);
             o.r.color = new Color(1f, 1f, 1f, 1f);
         }
         o.g.layer = layer;
         o.r.sortingOrder = sortingOrder;
         o.r.sortingLayerName = sortingLayerName;
-        o.g.SetActive(true);
     }
 
     /// <summary>
@@ -91,7 +91,9 @@ public struct GO {
         GO.material = material;
         GO.pool = new(count);
         for (int i = 0; i < count; i++) {
-            pool.Push(New());
+            var o = New();
+            o.g.SetActive(false);
+            pool.Push(o);
         }
     }
 

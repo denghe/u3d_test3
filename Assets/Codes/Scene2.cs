@@ -2,7 +2,6 @@
 using TMPro;
 using UnityEngine.UI;
 using System.Linq;
-using UnityEditor.SceneManagement;
 
 /// <summary>
 /// attach to scene game object
@@ -15,9 +14,6 @@ public class Scene2 : MonoBehaviour {
     // map to res
     public Sprite[] sprites_bg;
     public Sprite[] sprites_item;
-
-    // sprites_bg sort by quality
-    internal Sprite[] sprites_bg_quality;
 
     // map to ui components
     internal TextMeshProUGUI text_title, text_page_number;
@@ -42,14 +38,15 @@ public class Scene2 : MonoBehaviour {
         // binds
         Debug.Assert(sprites_item.Length > 0);
         Debug.Assert(sprites_bg.Length == 6);
-        sprites_bg_quality = new Sprite[6];
-        sprites_bg_quality[0] = sprites_bg.First(o => o.name == "bg_grey");
-        sprites_bg_quality[1] = sprites_bg.First(o => o.name == "bg_green");
-        sprites_bg_quality[2] = sprites_bg.First(o => o.name == "bg_blue");
-        sprites_bg_quality[3] = sprites_bg.First(o => o.name == "bg_purple");
-        sprites_bg_quality[4] = sprites_bg.First(o => o.name == "bg_brown");
-        sprites_bg_quality[5] = sprites_bg.First(o => o.name == "bg_red");
-        foreach (var o in sprites_bg_quality) {
+        Res.sprites_item = sprites_item;
+        Res.sprites_bg = new Sprite[6];
+        Res.sprites_bg[0] = sprites_bg.First(o => o.name == "bg_grey");
+        Res.sprites_bg[1] = sprites_bg.First(o => o.name == "bg_green");
+        Res.sprites_bg[2] = sprites_bg.First(o => o.name == "bg_blue");
+        Res.sprites_bg[3] = sprites_bg.First(o => o.name == "bg_purple");
+        Res.sprites_bg[4] = sprites_bg.First(o => o.name == "bg_brown");
+        Res.sprites_bg[5] = sprites_bg.First(o => o.name == "bg_red");
+        foreach (var o in Res.sprites_bg) {
             Debug.Assert(o != null);
         }
 
@@ -72,30 +69,49 @@ public class Scene2 : MonoBehaviour {
 
         // ...
 
-        // static inits
-        Res.sprites_bg = sprites_bg;
-        Res.sprites_item = sprites_item;
-        GO.Init(material, 50000);
+        button_sort.onClick.AddListener(() => {
+            player.bagInventory.Sort();
+        });
 
-        // instance inits
-        player = Player.instance;
-        var bag = player.bagInventory;
-        var bagPos = go_bag_inventory.transform.position;
-        Debug.Log(bagPos);
-        bag.Init(7, 10, 132, bagPos.x, bagPos.y);
-
-        // 先随便生成一些 item for test
-        for (int rowIndex = 0; rowIndex < 7; rowIndex++) {
-            for (int colIndex = 0; colIndex < 10; colIndex++) {
-                if (Random.value > 0.5f) {
-                    var id = Random.Range(0, sprites_item.Length);
-                    var quality = (BagItemQuality)Random.Range(0, sprites_bg.Length);
-                    new BagItem(bag, id, quality, 1, rowIndex, colIndex);
+        button_prev.onClick.AddListener(() => {
+            // 随便生成一些 item for test
+            var bag = player.bagInventory;
+            bag.Clear();
+            for (int rowIndex = 0; rowIndex < bag.numRows; rowIndex++) {
+                for (int colIndex = 0; colIndex < bag.numCols; colIndex++) {
+                    if (Random.value > 0.5f) {
+                        var id = Random.Range(0, sprites_item.Length);
+                        var quality = (BagItemQuality)Random.Range(0, sprites_bg.Length);
+                        new BagItem(bag, id, quality, 1, rowIndex, colIndex);
+                    }
                 }
             }
-        }
+        });
 
+        button_next.onClick.AddListener(() => {
+            // 随便生成一些 item for test
+            var bag = player.bagChar;
+            bag.Clear();
+            for (int rowIndex = 0; rowIndex < bag.numRows; rowIndex++) {
+                for (int colIndex = 0; colIndex < bag.numCols; colIndex++) {
+                    if (!bag.masks[rowIndex * bag.numCols + colIndex]) {
+                        var id = Random.Range(0, sprites_item.Length);
+                        var quality = (BagItemQuality)Random.Range(0, sprites_bg.Length);
+                        new BagItem(bag, id, quality, 1, rowIndex, colIndex);
+                    }
+                }
+            }
+        });
+
+        // inits
         Inputs.Init();
+        GO.Init(material, 50000);
+        player = Player.instance;
+        var p = go_bag_inventory.transform.position;
+        player.bagInventory.Init(BagTypes.Inventory, player.bagChar, 7, 10, 132, p.x, p.y);
+        p = go_bag_char.transform.position;
+        player.bagChar.Init(BagTypes.Char, player.bagInventory, 4, 4, 132, p.x, p.y);
+        player.bagChar.SetMasks(1, 2, 5, 6, 9, 10);
     }
 
     void Update() {
@@ -107,7 +123,9 @@ public class Scene2 : MonoBehaviour {
             ++Env.frameNumber;
             Env.time = Env.frameNumber * Env.frameDelay;
 
-            // todo: logic
+            // todo: other logic 
+
+            player.bagChar.Update();
             player.bagInventory.Update();
         }
 
@@ -120,7 +138,7 @@ public class Scene2 : MonoBehaviour {
         text_defence.text = player.defence.ToString();
         text_speed.text = player.speed.ToString();
 
-        //player.bagChar.Draw();
+        player.bagChar.Draw();
         player.bagInventory.Draw();
     }
 }
