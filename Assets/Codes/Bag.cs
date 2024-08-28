@@ -12,8 +12,6 @@ public enum BagTypes {
 public class Bag {
 
     // init 时填充
-    public BagTypes type;                                   // 背包类型
-    public Bag neighbor;                                    // 指向邻居背包( 可相互拖拽 )  // todo: 可能得是个数组
     public int numRows;                                     // 行数
     public int numCols;                                     // 列数
     public int numMaxItems;                                 // 最大数量
@@ -36,10 +34,8 @@ public class Bag {
     public float lastMBLeftDownTime;                        // 上次的鼠标左键按下状态变化的时间点( 秒 )
     public int lastItemIndex;                               // 上次的鼠标左键按下时所在格子下标
 
-    public void Init(BagTypes type_, Bag neighbor_, int numRows_, int numCols_, float cellSize_, float goX, float goY) {
+    public void Init(int numRows_, int numCols_, float cellSize_, float goX, float goY) {
         Debug.Assert(items == null);
-        type = type_;
-        neighbor = neighbor_;
         numRows = numRows_;
         numCols = numCols_;
         numMaxItems = numRows * numCols_;
@@ -54,7 +50,6 @@ public class Bag {
 
         posX = goX - gridWidth_2;
         posY = goY + gridHeight_2;
-        Debug.Log(posX + " " + posY);
     }
 
     public void Update() {
@@ -184,9 +179,9 @@ public class Bag {
             if (a == null && b == null) return 0;
             else if (a == null) return 1;
             else if (b == null) return -1;
-            else if (a.quality < b.quality) return -1;
-            else if (a.quality > b.quality) return 1;
-            else return a.id.CompareTo(b.id);
+            else if (a.cQuality < b.cQuality) return -1;
+            else if (a.cQuality > b.cQuality) return 1;
+            else return a.cResId.CompareTo(b.cResId);
         });
 
         for (int rowIndex = 0; rowIndex < numRows; rowIndex++) {

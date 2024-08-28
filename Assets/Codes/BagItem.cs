@@ -1,37 +1,34 @@
 ﻿using UnityEngine;
 
-/// <summary>
-/// 对象品质，对应 bg 下标
-/// </summary>
-public enum BagItemQuality {
-    Grey, Green, Blue, Purple, Brown, Red
-}
-
-public class BagItem {
+public class BagItem : Item {
     public Bag bag;
     public GO goBG, goItem, goShadow;                   // 显示对象
     public float x, y;                                  // 当前坐标( world )
     public float tarX, tarY;                            // 要移动到的目标坐标( world )
     public const float tarSpeed = 80 * 60 / Env.FPS;    // 移动速度( 每帧像素距离 )
 
-    public BagItemQuality quality;                      // 物品品质
-    public int id;                                      // 物品 id
-    public double quantity;                             // 数量( todo: 显示为文字? )
-    // ...
-
-    public BagItem(Bag bag_, int id_, BagItemQuality quality_, double quantity_ = 1, int rowIndex = -1, int colIndex = -1) {
-        Debug.Assert(rowIndex != -1 && colIndex != -1
-            || rowIndex == -1 && colIndex == -1);
+    public BagItem(Bag bag_, int id_, ItemQualities quality_, ItemTypes type_, double quantity_ = 1, int rowIndex = -1, int colIndex = -1) {
 
         bag = bag_;
-        var idx = rowIndex * bag.numCols + colIndex;
-        Debug.Assert(bag.items[idx] == null);
-
-        bag.items[idx] = this;
-
-        id = id_;
-        quality = quality_;
+        cResId = id_;
+        cType = type_;
+        cQuality = quality_;
         quantity = quantity_;
+		
+		Debug.Assert(rowIndex != -1 && colIndex != -1
+            || rowIndex == -1 && colIndex == -1);
+        int idx = 0;
+        if (rowIndex == -1 && colIndex == -1) {
+            for (int e = bag.items.Length; idx < e; ++idx) {
+                if (bag.items[idx] == null) break;
+            }
+            Debug.Assert(false);    // full
+        } else {
+            Debug.Assert(rowIndex != -1 && colIndex != -1);
+            idx = rowIndex * bag.numCols + colIndex;
+            Debug.Assert(bag.items[idx] == null);
+        }
+        bag.items[idx] = this;
 
         SetTarXY(rowIndex, colIndex);
         x = bag.posX + bag.cellSize_2;
@@ -40,9 +37,9 @@ public class BagItem {
         GO.Pop(ref goBG);
         GO.Pop(ref goItem);
         GO.Pop(ref goShadow);
-        goBG.r.sprite = Res.sprites_bg[(int)quality];
-        goItem.r.sprite = Res.sprites_item[id];
-        goShadow.r.sprite = Res.sprites_item[id];
+        goBG.r.sprite = Res.sprites_bg[(int)cQuality];
+        goItem.r.sprite = Res.sprites_item[cResId];
+        goShadow.r.sprite = Res.sprites_item[cResId];
         goShadow.r.color = new Color(0, 0, 0, 127);
         goShadow.g.transform.position = new Vector3(6, -5);
         goItem.g.transform.parent = goBG.g.transform;

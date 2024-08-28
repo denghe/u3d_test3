@@ -35,21 +35,8 @@ public class Scene2 : MonoBehaviour {
 
 
     void Start() {
-        // binds
-        Debug.Assert(sprites_item.Length > 0);
-        Debug.Assert(sprites_bg.Length == 6);
-        Res.sprites_item = sprites_item;
-        Res.sprites_bg = new Sprite[6];
-        Res.sprites_bg[0] = sprites_bg.First(o => o.name == "bg_grey");
-        Res.sprites_bg[1] = sprites_bg.First(o => o.name == "bg_green");
-        Res.sprites_bg[2] = sprites_bg.First(o => o.name == "bg_blue");
-        Res.sprites_bg[3] = sprites_bg.First(o => o.name == "bg_purple");
-        Res.sprites_bg[4] = sprites_bg.First(o => o.name == "bg_brown");
-        Res.sprites_bg[5] = sprites_bg.First(o => o.name == "bg_red");
-        foreach (var o in Res.sprites_bg) {
-            Debug.Assert(o != null);
-        }
 
+        // binds
         GetComponentTo<TextMeshProUGUI>(ref text_title, "Title");
         GetComponentTo<TextMeshProUGUI>(ref text_page_number, "Page Number");
 
@@ -69,6 +56,10 @@ public class Scene2 : MonoBehaviour {
 
         // ...
 
+        // todo: 先生成一个 item 列表 含所有物品
+
+
+
         button_sort.onClick.AddListener(() => {
             player.bagInventory.Sort();
         });
@@ -81,8 +72,8 @@ public class Scene2 : MonoBehaviour {
                 for (int colIndex = 0; colIndex < bag.numCols; colIndex++) {
                     if (Random.value > 0.5f) {
                         var id = Random.Range(0, sprites_item.Length);
-                        var quality = (BagItemQuality)Random.Range(0, sprites_bg.Length);
-                        new BagItem(bag, id, quality, 1, rowIndex, colIndex);
+                        var quality = (ItemQualities)Random.Range(0, sprites_bg.Length);
+                        //new BagItem(bag, id, quality, 1, rowIndex, colIndex);
                     }
                 }
             }
@@ -96,8 +87,8 @@ public class Scene2 : MonoBehaviour {
                 for (int colIndex = 0; colIndex < bag.numCols; colIndex++) {
                     if (!bag.masks[rowIndex * bag.numCols + colIndex]) {
                         var id = Random.Range(0, sprites_item.Length);
-                        var quality = (BagItemQuality)Random.Range(0, sprites_bg.Length);
-                        new BagItem(bag, id, quality, 1, rowIndex, colIndex);
+                        var quality = (ItemQualities)Random.Range(0, sprites_bg.Length);
+                        //new BagItem(bag, id, quality, 1, rowIndex, colIndex);
                     }
                 }
             }
@@ -105,12 +96,14 @@ public class Scene2 : MonoBehaviour {
 
         // inits
         Inputs.Init();
+        Res.Init(sprites_bg, sprites_item);
+        Cfg.Init();
         GO.Init(material, 50000);
         player = Player.instance;
         var p = go_bag_inventory.transform.position;
-        player.bagInventory.Init(BagTypes.Inventory, player.bagChar, 7, 10, 132, p.x, p.y);
+        player.bagInventory.Init(7, 10, 132, p.x, p.y);
         p = go_bag_char.transform.position;
-        player.bagChar.Init(BagTypes.Char, player.bagInventory, 4, 4, 132, p.x, p.y);
+        player.bagChar.Init(4, 4, 132, p.x, p.y);
         player.bagChar.SetMasks(1, 2, 5, 6, 9, 10);
     }
 
