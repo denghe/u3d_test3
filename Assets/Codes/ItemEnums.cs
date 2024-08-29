@@ -3,30 +3,37 @@
 /// </summary>
 public enum ItemQualities {
     /// <summary>
-    /// 普通 normal
+    /// 普通
     /// </summary>
     Grey,
+    Normal = Grey,
     /// <summary>
-    /// 优秀 excellent
+    /// 精良
     /// </summary>
     Green,
+    Excellent = Green,
     /// <summary>
-    /// 精良 superior
+    /// 稀有
     /// </summary>
     Blue,
+    Rare = Blue,
     /// <summary>
-    /// 史诗 epic
+    /// 史诗
     /// </summary>
     Purple,
+    Epic = Purple,
     /// <summary>
-    /// 传奇 legend
+    /// 传奇
     /// </summary>
     Brown,
+    Legendary = Brown,
     /// <summary>
-    /// 远古 ancient
+    /// 远古
     /// </summary>
-    Red
-    // 太古 archaic
+    Red,
+    Ancient = Red,
+
+    // 太古 archaic ?
 }
 
 /// <summary>
@@ -72,11 +79,11 @@ public enum ItemTypes {
     /// <summary>
     /// 武器( 主手 )
     /// </summary>
-    Weapon1,
+    WeaponMaster,
     /// <summary>
     /// 武器( 副手 )
     /// </summary>
-    Weapon2,
+    WeaponSlave,
     /// <summary>
     /// 饰品( 多个 )
     /// </summary>
@@ -222,6 +229,11 @@ public enum StatTypes {
     /// Evasion gives a chance to completely avoid damage from most direct hits.
     /// </summary>
     Evasion,
+
+    /// <summary>
+    /// 防御值( 以点数的方式，抵消等值伤害 )
+    /// </summary>
+    Defence,
 
     /// <summary>
     /// 伤害减免
