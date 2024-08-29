@@ -140,12 +140,6 @@ public enum StatTypes {
     Thorns,
 
     /// <summary>
-    /// 击退概率
-    /// How high your chance is per strike to knock away foes.
-    /// </summary>
-    KnockbackChance,
-
-    /// <summary>
     /// 生命回复
     /// How much Health you restore per second.
     /// </summary>
@@ -330,6 +324,21 @@ public enum StatTypes {
     /// This stat affects the light surrounding your character.
     /// </summary>
     LightRadius,
+
+    /********************************************************************************/
+    // 下面是一些具体技能相关的词条
+
+    /// <summary>
+    /// 击退概率
+    /// How high your chance is per strike to knock away foes.
+    /// </summary>
+    KnockbackChance,
+
+    /// <summary>
+    /// 穿透次数( 额外的 ). 对于碰撞到敌人后本该消亡的技能抛射物，穿越并造成多次伤害。
+    /// 每次造成伤害有个冷却时间，通常为 0.2 秒( 该数值受冷却时间减少影响 )
+    /// </summary>
+    PierceCount,
 }
 
 /// < summary >
@@ -347,37 +356,35 @@ public struct Stat {
 }
 
 
-    /// <summary>
-    /// 物品词条
-    /// </summary>
-    //[StructLayout(LayoutKind.Explicit)]
-    //public struct Stats {
-    //    [FieldOffset(0)]
-    //    public StatTypes type;
-
-    //    [FieldOffset(4)]
-    //    public float f1;
-    //    [FieldOffset(8)]
-    //    public float f2;
-    //    [FieldOffset(12)]
-    //    public float f3;
-
-    //    [FieldOffset(4)]
-    //    public int i1;
-    //    [FieldOffset(8)]
-    //    public int i2;
-    //    [FieldOffset(12)]
-    //    public int i3;
-
-    //    [FieldOffset(8)]
-    //    public double d1;
-    //    [FieldOffset(8)]
-    //    public long l1;
-    //}
-
-    /// <summary>
-    /// 掉落到地上的物品( 当从地面拾取时，将转为 BagItem 智能的放入背包 )
-    /// </summary>
-    public class FloorItem : Item {
+/// <summary>
+/// 掉落到地上的物品( 当从地面拾取时，将转为 BagItem 智能的放入背包 )
+/// </summary>
+public class FloorItem : Item {
     // todo: 地面坐标 啥的?
 }
+
+
+//[StructLayout(LayoutKind.Explicit)]
+//public struct Stat {
+//    [FieldOffset(0)]
+//    public StatTypes type;
+
+//    [FieldOffset(4)]
+//    public float f1;
+//    [FieldOffset(8)]
+//    public float f2;
+//    [FieldOffset(12)]
+//    public float f3;
+
+//    [FieldOffset(4)]
+//    public int i1;
+//    [FieldOffset(8)]
+//    public int i2;
+//    [FieldOffset(12)]
+//    public int i3;
+
+//    [FieldOffset(8)]
+//    public double d1;
+//    [FieldOffset(8)]
+//    public long l1;
+//}
