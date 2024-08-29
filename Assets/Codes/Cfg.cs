@@ -3,7 +3,7 @@ using UnityEngine;
 
 public static class Cfg {
     public static ItemConfig[] items;
-    // todo: 掉率表?
+    // todo: 掉率表? 技能? Buff?
 
     public static ItemConfig item_arrow_basic;
     public static ItemConfig item_bone_skull;
@@ -40,19 +40,30 @@ public static class Cfg {
 
     public static SetsConfig sets_bone;
 
+    // ...
+
+    // todo
+    public static SkillConfig[] skillConfigs;
+    public static Skill[] skills;
+
+
     public static void Init() {
         Debug.Assert(Res.sprites_bg != null);
         Debug.Assert(items == null);
 
+        // todo: fill skill config
+
         /**************************************************************************************************************/
         // arrow_basic
-        item_arrow_basic = ItemConfig.Make(ItemQualities.Epic, ItemTypes.WeaponSlave, Res.sprite_arrow_basic, 0, false
+        item_arrow_basic = ItemConfig.Make(Res.sprite_arrow_basic, ItemQualities.Epic, ItemTypes.WeaponSlave, 1
+            , null, 0
             , StatConfig.Make(StatTypes.Damage, 10, 20)
         );
 
         /**************************************************************************************************************/
         // bone_skull
-        item_bone_skull = ItemConfig.Make(ItemQualities.Legendary, ItemTypes.WeaponSlave, Res.sprite_bone_skull, 1, false
+        item_bone_skull = ItemConfig.Make(Res.sprite_bone_skull, ItemQualities.Legendary, ItemTypes.WeaponSlave, 1
+            , null, 1
             , StatConfig.Make(StatTypes.Damage, 20)
         );
         item_bone_skull.FillAvaliableStats(
@@ -62,7 +73,8 @@ public static class Cfg {
 
         /**************************************************************************************************************/
         // bone_white
-        item_bone_white = ItemConfig.Make(ItemQualities.Legendary, ItemTypes.WeaponMaster, Res.sprite_bone_white, 1, false
+        item_bone_white = ItemConfig.Make(Res.sprite_bone_white, ItemQualities.Legendary, ItemTypes.WeaponMaster, 1
+            , null, 1
             , StatConfig.Make(StatTypes.Damage, 25)
         );
         item_bone_white.FillAvaliableStats(
@@ -77,12 +89,19 @@ public static class Cfg {
 
         /**************************************************************************************************************/
         // book_closed_red
-        item_book_closed_red = ItemConfig.Make(ItemQualities.Ancient, ItemTypes.Accessory, Res.sprite_book_closed_red, 0, false
+        item_book_closed_red = ItemConfig.Make(Res.sprite_book_closed_red, ItemQualities.Ancient, ItemTypes.Accessory, 1
+            , null, 0
             , StatConfig.Make(StatTypes.CriticalHitChance, 0.5f)
             , StatConfig.Make(StatTypes.CriticalHitDamage, 1f)
         );
 
-        // todo
+        /**************************************************************************************************************/
+        // bottle_standard_blue
+        item_bottle_standard_blue = ItemConfig.Make(Res.sprite_bottle_standard_blue, ItemQualities.Normal, ItemTypes.Potion, 0
+            , null/* todo: 定位到回蓝技能 */, 0);
+
+
+        // todo: more
 
         // ...
 

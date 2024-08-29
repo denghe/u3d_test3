@@ -88,6 +88,23 @@ public enum ItemTypes {
     /// 饰品( 多个 )
     /// </summary>
     Accessory,
+
+    /// <summary>
+    /// 药瓶, 能喝( 映射到恢复技能 )( 无法装配到身上 )
+    /// </summary>
+    Potion,
+    /// <summary>
+    /// 卷轴, 能施展( 映射到技能 )( 无法装配到身上 )
+    /// </summary>
+    Scrolls,
+    /// <summary>
+    /// 钥匙, 能开门开箱( 无法装配到身上 )
+    /// </summary>
+    Keys,
+    /// <summary>
+    /// 宝石, 可镶嵌( 无法装配到身上 )
+    /// </summary>
+    Gems,
     /// <summary>
     /// 材料( 无法装配到身上 )
     /// </summary>
@@ -99,7 +116,7 @@ public enum ItemTypes {
 }
 
 /// <summary>
-/// 物品词条分类 ( 抄的，不一定抄完整了，不一定用的完, 备注里提到的 数据上限，附加限制，仅供参考 )
+/// 物品词条分类 ( 不一定用的完, 备注仅供参考, 具体细节再说 )
 /// </summary>
 public enum StatTypes {
 
@@ -390,7 +407,7 @@ public enum StatTypes {
     LightRadius,
 
     /********************************************************************************/
-    // 下面是一些具体技能相关的词条( 不一定显示在面板上 )
+    // 下面是一些非通用的，和具体技能紧密相关的词条
 
     /// <summary>
     /// 击退概率
