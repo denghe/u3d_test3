@@ -31,6 +31,7 @@ public class BagCell_Condition : BagCell {
         typeLimit = typeLimit_;
     }
     public override bool Avaliable(BagItem item) {
-        return item.cType == typeLimit;
+        //return item.cType == typeLimit;
+        return false;   // todo
     }
 }

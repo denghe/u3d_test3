@@ -179,9 +179,10 @@ public class Bag {
             if (a == null && b == null) return 0;
             else if (a == null) return 1;
             else if (b == null) return -1;
-            else if (a.cQuality < b.cQuality) return -1;
-            else if (a.cQuality > b.cQuality) return 1;
-            else return a.cResId.CompareTo(b.cResId);
+            //else if (a.cQuality < b.cQuality) return -1;
+            //else if (a.cQuality > b.cQuality) return 1;
+            //else return a.cResId.CompareTo(b.cResId);
+            return 0;   // todo
         });
 
         for (int rowIndex = 0; rowIndex < numRows; rowIndex++) {

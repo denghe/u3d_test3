@@ -10,9 +10,10 @@ public class BagItem : Item {
     public BagItem(Bag bag_, int id_, ItemQualities quality_, ItemTypes type_, double quantity_ = 1, int rowIndex = -1, int colIndex = -1) {
 
         bag = bag_;
-        cResId = id_;
-        cType = type_;
-        cQuality = quality_;
+        //cResId = id_;
+        //cType = type_;
+        //cQuality = quality_;
+        // todo
         quantity = quantity_;
 		
 		Debug.Assert(rowIndex != -1 && colIndex != -1
@@ -37,9 +38,10 @@ public class BagItem : Item {
         GO.Pop(ref goBG);
         GO.Pop(ref goItem);
         GO.Pop(ref goShadow);
-        goBG.r.sprite = Res.sprites_bg[(int)cQuality];
-        goItem.r.sprite = Res.sprites_item[cResId];
-        goShadow.r.sprite = Res.sprites_item[cResId];
+        //goBG.r.sprite = Res.sprites_bg[(int)cQuality];
+        //goItem.r.sprite = Res.sprites_item[cResId];
+        //goShadow.r.sprite = Res.sprites_item[cResId];
+        // todo
         goShadow.r.color = new Color(0, 0, 0, 127);
         goShadow.g.transform.position = new Vector3(6, -5);
         goItem.g.transform.parent = goBG.g.transform;
