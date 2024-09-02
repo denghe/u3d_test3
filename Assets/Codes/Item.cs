@@ -1,5 +1,9 @@
 ﻿using System.Collections.Generic;
+using System.Runtime.InteropServices;
 using UnityEngine;
+
+// todo: 这里的内容 大概属于 装备范畴, 应该属于 item 的特化。 更泛化的 item 应该指代场景里任意东西
+// 理论上讲也可以继续在 item types 里继续丰富种类，把 地板 墙壁 ... 啥的也加进去
 
 /// <summary>
 /// 词条配置
@@ -69,9 +73,14 @@ public class SetsConfig {
 /// <summary>
 /// 物品词条
 /// </summary>
+[StructLayout(LayoutKind.Explicit)]
 public struct Stat {
+    [FieldOffset(0)]
     public StatTypes type;
+    [FieldOffset(4)]
     public float value;
+    [FieldOffset(4)]
+    public int intValue;
 }
 
 /// <summary>

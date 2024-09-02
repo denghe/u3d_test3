@@ -1,7 +1,5 @@
-﻿using System.Collections.Generic;
-
-/*
-// todo: 先分析一波 技能
+﻿/*
+先分析一波 技能
 
 技能实质是针对 场景内对象的一些创建行为，或是属性的一些短期或长期修改行为，可能会有后续连锁反应。可理简单解为 角色( 玩家, 怪, 机关... ) 能在游戏里做什么
 
@@ -14,47 +12,97 @@
 从分类来看，会有多种分法。
 按 释放者 是否有好处来讲，可以是 增益 buff( 增加数值，通常作用于友方 ), 或 减益 debuff( 减少数值，通常作用于敌方 )
 按 及时性 来讲 ，可以是 主动 active( 手动触发 )，被动 passive( 每帧自动触发 ) 
-按 功能性质 来讲，可以是 直接加减血的，上 buff / dot( 周期 recurrent 影响属性强度 / 减血 ) 的，召唤( 创造新对象 ) 的，等等
+按 功能性质 来讲，可以是 直接加减血的，上 buff / dot( 周期 recurrent 影响属性强度 / 减血 ) 的，召唤( 创造新对象: item? buff? stat? ) 的，等等
+按 使用场合 来讲，可以是 战斗 / 生活 / 建造 / 重铸 .... 等
 
 这里先列举一些常见的典型的技能案例
 
 受伤减血后脱离战斗了，血慢慢恢复
-    buff( 持续多帧生效 ) passive( 每帧自动触发. 但会检查条件：脱离战斗后 )
-    性质： 周期加血( 可能每间隔几帧加一点直到加满? )
+    效果： 周期加血( 可能每间隔几帧加一点直到加满? ) 每帧自动触发. 但会检查条件：脱离战斗后
     目标：释放者
-    实现：当目标创建成功时，立即在目标的 buff/debuff 容器中，创建一个 恢复buff。每次目标 update 时也会调用该 buff update
+    实现：target.OnCreate += { target.buffs.add( new 恢复buff( 永久, 执行条件：脱离战斗后 ) ) }
 
 战斗中直接喝血瓶子，自己加了一截血
-    buff( 当前帧生效 ) active( 手动触发 )
-    性质：一次性加血
+    效果：一次性加血
     目标：释放者
     实现：target.health += xxxx
 
 砍怪一刀，怪减了一截血
-    debuff( 当前帧生效 ) active( 手动触发 )
-    性质：一次性减血
-    目标：怪
+    效果：一次性减血
     实现：target.health -= xxxx 可能会有联动 比如目标死亡？
 
 召唤出一只骷髅怪
-    buff( 当前帧生效 ) active( 手动触发 )
-    性质：一次性召唤
-    目标：无
-    实现：新创建 owner = 释放者 的 骷髅怪 到场景
+    效果：一次性召唤
+    实现：scene.items.add( new 骷髅怪( owner = 释放者 ) )
 
 发射一枚火球
-    buff( 当前帧生效 ) active( 手动触发 )
-    性质：一次性召唤
+    效果：一次性召唤
     目标：无( 就算是对着怪, 那也只是取其坐标，或令火球在飞行途中去跟随，不能算成当前的释放目标 )
-    实现：新创建 owner = 释放者 的 火球 到场景
+    实现：scene.items.add( new 火球( owner = 释放者 ) )
 
 用法术点燃怪，怪持续几秒都在掉血
-    debuff( 持续多帧生效 ) active( 手动触发 )
-    性质：周期性减血
-    目标：怪
-    实现：立即在目标的 buff/debuff 容器中，创建一个 减血buff。每次目标 update 时也会调用该 buff update
+    效果：一段时间内周期性减血
+    实现：target.buffs.add( new 减血buff( 存活一段时间 ) )
+
+开"无敌"数秒
+    效果：一段时间内免伤，buff具备很高优先级( 不太容易被移除/取消 )
+    实现：target.buffs.add( new 无敌buff( 存活数秒 ) )
+
+使用xx药剂, 令某装备增加词条
+    效果：一次性添加词条
+    目标：装备
+    实现：target.stats.add( new Stat( type = StatTypes.xxxx, value = random .... 永久生效 ) )
+
+向目标使用禁言术
+    效果：一段时间内一次性召唤, 创建出备排他性的特殊buff，会导致目标一段时间内很多行为不能( 行为条件可以是检查 buff 队列中是否存在这种东西 )
+    实现：target.buffs.add( new 禁言buff( 存活一段时间 ) )
+
+驱散/移除
+    效果类似上面，走反向移除操作
+
+目标走在地板上/墙边
+    效果：另目标部分移动方向受限( 这里的释放者，是地板/墙 )
+    实现：target.buffs.add( new 移动限制buff( 存活 1 帧 ) )
+
+控制目标移动
+    效果：令目标坐标发生变化. 可理解为是每一帧都去检测 输入设备( 也可能是AI决策 )状态，是否正在持续下达移动指令
+    实现：target.buffs.add( new 移动buff( 存活 1 帧 ) )
+
+令目标在场景里"存活"
+    效果：初始化目标血量
+    实现：target.OnCreate += { target.buffs.add( new 设置初始血量buff() ) }
+
+
+items 队列操作有可能因为 "数量超出上限" 而失败
+buffs, stats 队列操作有可能因为 "互斥" 而失败, 有可能因已存在而需要 "刷新/替换"( 视 优先级 / 强度 而定 )
+buff, stat 本身和 item 之间，也有一个分类适配  的说法，通常不能乱挂。所以可能会存在 黑白名单配置表
+
+stats 可理解为 "配置列表"
+buffs 可理解为 "行为列表" / "指令表" / "timer表" ( 替代 update 的逻辑部分实现 )
+stats 是 buffs 执行的参数或依据. 
+buffs 执行, 也能直接修改 stats 的内容
+
+class item_base {
+    config; // 包含 stats buffs 黑白名单
+    stats;
+    buffs1, buffs2;
+    avaliableBuffs = buffs1;          // 当前可用于 insert 的 buffs
+    update() {
+        freeBuffs = buffs2;
+        foreach( buff in buffs1 ) {  // 实际为倒循环
+            execute( buff )
+        }
+        freeBuffs = buffs1;
+        foreach( buff in buffs2 ) {  // 实际为倒循环
+            execute( buff )
+        }
+    }
+}
+
 
 */
+
+using System.Collections.Generic;
 
 /// <summary>
 /// 技能配置
