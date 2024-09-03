@@ -83,7 +83,7 @@ stats 是 buffs 执行的参数或依据.
 buffs 执行, 也能直接修改 stats 的内容
 
 class item_base {
-    config; // 包含 stats buffs 黑白名单
+    config; // 包含 stats buffs 黑白名单, 以及 常驻buff 配置( 体现天生本能 )
     stats;
     buffs1, buffs2;
     avaliableBuffs = buffs1;          // 当前可用于 insert 的 buffs
@@ -96,6 +96,7 @@ class item_base {
         foreach( buff in buffs2 ) {  // 实际为倒循环
             execute( buff )
         }
+        tryAddResidentSkills();     // 每轮都尝试恢复 本能skills
     }
 }
 
