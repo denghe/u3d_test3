@@ -103,7 +103,189 @@ class item_base {
 
 */
 
-using System.Collections.Generic;
+
+/*******************************************************************************************************************************************************************************/
+/*******************************************************************************************************************************************************************************/
+
+using System;
+using System.Diagnostics;
+using System.Runtime.InteropServices;
+
+// 这里将 buff, skill, behavior ... 都同等对待
+
+// 模拟 1只怪 不断移动，每隔 几帧 会 晕几帧
+
+public enum BuffTypes : int {
+    Move,
+    Stun,
+    // ...
+    MaxValue
+}
+
+[StructLayout(LayoutKind.Sequential)]
+public struct Buff {
+    public BuffTypes type;
+    public int _0, _1, _2;
+}
+
+[StructLayout(LayoutKind.Sequential)]
+public struct Buff_Move {
+    public BuffTypes type;
+    public int speed, _1, _2;
+}
+
+[StructLayout(LayoutKind.Sequential)]
+public struct Buff_Stun {
+    public BuffTypes type;
+    public int timeoutFrameNumber, _1, _2;
+}
+
+public class Scene {
+    public int frameNumber;
+    public Monster monster;
+    public void Init() {
+        monster.Init(this);
+    }
+    public int Update() {
+        ++frameNumber;
+        if (frameNumber % 3 == 0) {
+            monster.AddBuff_Stun(5);        // simulate stun event every 3 frames
+        }
+        return monster.Update();
+    }
+
+}
+
+public unsafe class Monster {
+    public Scene scene;
+    public int pos;
+    // ...
+
+    public ulong buffsFlags;
+    public int buffsLen;
+    public Buff[] buffsArray;
+    public GCHandle buffsHandle;
+    public Buff* buffs;
+
+    public bool BuffsExists(BuffTypes bt) {
+        return (buffsFlags & ((ulong)1 << (int)bt)) > 0;
+    }
+    public void BuffsSetFlag(BuffTypes bt) {
+        Debug.Assert(!BuffsExists(bt));
+        buffsFlags |= ((ulong)1 << (int)bt);
+    }
+    public void BuffsClearFlag(BuffTypes bt) {
+        Debug.Assert(BuffsExists(bt));
+        buffsFlags &= ~((ulong)1 << (int)bt);
+    }
+
+    public bool BuffsRemove(BuffTypes bt) {
+        if (!BuffsExists(bt)) return false;
+        buffsFlags &= ~((ulong)1 << (int)bt);
+        for (int i = buffsLen - 1; i >= 0; --i) {
+            if (buffsArray[i].type == bt) {
+                buffsArray[i] = buffs[--buffsLen];
+            }
+        }
+        return true;
+    }
+
+    public void Init(Scene scene_) {
+        scene = scene_;
+
+        var cap = 6;
+        buffsArray = new Buff[cap];
+        buffsHandle = GCHandle.Alloc(buffsArray, GCHandleType.Pinned);
+        buffs = (Buff*)buffsHandle.AddrOfPinnedObject();
+
+    }
+    public void TryAddBaseBuffs() {
+        AddBuff_Move(1);
+    }
+
+    public int Update() {
+		var frameNumber = scene.frameNumber;
+		for (int i = buffsLen - 1; i >= 0; --i) {
+			var b = &buffs[i];
+			switch (b->type) {
+                case BuffTypes.Move: HandleBuff_Move((Buff_Move*)b, frameNumber, i); break;
+                case BuffTypes.Stun: HandleBuff_Stun((Buff_Stun*)b, frameNumber, i); break;
+                // ... more case
+            }
+		}
+		TryAddBaseBuffs();
+        return 0;
+    }
+
+    public void HandleBuff_Move(Buff_Move* o, int frameNumber, int index) {
+        pos += o->speed;
+    }
+
+    public void HandleBuff_Stun(Buff_Stun* o, int frameNumber, int index) {
+        if (o->timeoutFrameNumber < frameNumber) {
+            buffsArray[index] = buffs[--buffsLen];
+            BuffsClearFlag(BuffTypes.Stun);
+        }
+    }
+
+    /*********************************************************************************************/
+
+    public bool AddBuff_Move(int speed) {
+        if (BuffsExists(BuffTypes.Move) || BuffsExists(BuffTypes.Stun)) return false;
+        BuffsSetFlag(BuffTypes.Move);
+        var o = (Buff_Move*)&buffs[buffsLen++];
+        o->type = BuffTypes.Move;
+        o->speed = speed;
+        return true;
+    }
+
+    public bool AddBuff_Stun(int numFrames) {
+        if (BuffsExists(BuffTypes.Stun)) return false;
+        BuffsRemove(BuffTypes.Move);
+        BuffsSetFlag(BuffTypes.Stun);
+        var o = (Buff_Stun*)&buffs[buffsLen++];
+        o->type = BuffTypes.Stun;
+        o->timeoutFrameNumber = scene.frameNumber + numFrames;
+        return true;
+    }
+}
+
+public static class SceneTester {
+    public static void Test() {
+        var scene = new Scene();
+        scene.Init();
+#if true
+		for (int i = 0; i < 20; i++) {
+			scene.Update();
+			UnityEngine.Debug.Log(scene.frameNumber + "\tmonster.pos = " + scene.monster.pos);
+		}
+#else
+        auto secs = xx::NowEpochSeconds();
+        for (int i = 0; i < 100000000; i++) {
+            scene.Update();
+        }
+        xx::CoutN("secs = ", xx::NowEpochSeconds(secs));
+        xx::CoutN(scene.frameNumber, "\tmonster.pos = ", scene.monster.pos);
+#endif
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/*******************************************************************************************************************************************************************************/
+/*******************************************************************************************************************************************************************************/
 
 /// <summary>
 /// 技能配置
@@ -127,7 +309,6 @@ public class Skill {
     // todo
 }
 
-
 ///// <summary>
 ///// 技能容器
 ///// </summary>
@@ -135,20 +316,20 @@ public class Skill {
 //    // todo
 //}
 
-/// <summary>
-/// Buff 或 Debuff
-/// </summary>
-public class Buff {
+///// <summary>
+///// Buff 或 Debuff
+///// </summary>
+//public class Buff {
 
-}
+//}
 
-/// <summary>
-/// 角色
-/// </summary>
-public class Character {
-    public List<Buff> buffs;
-    public List<Skill> skills;
-}
+///// <summary>
+///// 角色
+///// </summary>
+//public class Character {
+//    public List<Buff> buffs;
+//    public List<Skill> skills;
+//}
 
 
 
