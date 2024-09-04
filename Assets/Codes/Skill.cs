@@ -110,6 +110,7 @@ class item_base {
 using System;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
+using System.Text;
 
 // 这里将 buff, skill, behavior ... 都同等对待
 
@@ -142,7 +143,7 @@ public struct Buff_Stun {
 
 public class Scene {
     public int frameNumber;
-    public Monster monster;
+    public Monster monster = new();
     public void Init() {
         monster.Init(this);
     }
@@ -251,22 +252,24 @@ public unsafe class Monster {
 }
 
 public static class SceneTester {
-    public static void Test() {
+    public static string Run() {
         var scene = new Scene();
         scene.Init();
+        var sb = new StringBuilder();
 #if true
 		for (int i = 0; i < 20; i++) {
 			scene.Update();
-			UnityEngine.Debug.Log(scene.frameNumber + "\tmonster.pos = " + scene.monster.pos);
+            sb.AppendLine(scene.frameNumber + "\tmonster.pos = " + scene.monster.pos);
 		}
 #else
-        auto secs = xx::NowEpochSeconds();
+        var sw = Stopwatch.StartNew();
         for (int i = 0; i < 100000000; i++) {
             scene.Update();
         }
-        xx::CoutN("secs = ", xx::NowEpochSeconds(secs));
-        xx::CoutN(scene.frameNumber, "\tmonster.pos = ", scene.monster.pos);
+        sb.AppendLine("secs = " + sw.ElapsedMilliseconds / 1000f);
+        sb.AppendLine(scene.frameNumber + "\tmonster.pos = " + scene.monster.pos);
 #endif
+        return sb.ToString();
     }
 }
 
