@@ -199,6 +199,7 @@ public unsafe class Monster {
         buffsHandle = GCHandle.Alloc(buffsArray, GCHandleType.Pinned);
         buffs = (Buff*)buffsHandle.AddrOfPinnedObject();
 
+        TryAddBaseBuffs();
     }
     public void TryAddBaseBuffs() {
         AddBuff_Move(1);
@@ -256,7 +257,7 @@ public static class SceneTester {
         var scene = new Scene();
         scene.Init();
         var sb = new StringBuilder();
-#if true
+#if false
 		for (int i = 0; i < 20; i++) {
 			scene.Update();
             sb.AppendLine(scene.frameNumber + "\tmonster.pos = " + scene.monster.pos);
