@@ -2,6 +2,7 @@
 using TMPro;
 using UnityEngine.UI;
 using System.Linq;
+using UnityEngine.TextCore.LowLevel;
 
 /// <summary>
 /// attach to scene game object
@@ -14,6 +15,8 @@ public class Scene2 : MonoBehaviour {
     // map to res
     public Sprite[] sprites_bg;
     public Sprite[] sprites_item;
+
+    public Font font;
 
     // map to ui components
     internal TextMeshProUGUI text_title, text_page_number;
@@ -35,6 +38,22 @@ public class Scene2 : MonoBehaviour {
 
 
     void Start() {
+
+        var fa = TMP_FontAsset.CreateFontAsset(font, 90, 9, GlyphRenderMode.SDFAA, 8192, 8192);
+        TMP_Settings.fallbackFontAssets.Add(fa);
+
+        //string[] sysFontPaths = Font.GetPathsToOSFonts();
+        //if (sysFontPaths != null && sysFontPaths.Length > 0) {
+        //    for (int i = 0; i < sysFontPaths.Length; i++) {
+        //        var sysFont = new Font(sysFontPaths[i]);
+        //        var sysFontAsset = TMP_FontAsset.CreateFontAsset(sysFont);
+        //        TMP_Settings.fallbackFontAssets.Add(sysFontAsset);
+        //    }
+        //} else {
+        //    Debug.Log("sysFontNames is empty!");
+        //}
+
+
 
         // binds
         GetComponentTo<TextMeshProUGUI>(ref text_title, "Title");
